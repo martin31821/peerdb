@@ -33,8 +33,28 @@ jobs:
         uses: depot/bake-action@v1
         with:
           token: ${{ secrets.DEPOT_TOKEN }}
-          files: ./docker-bake.hcl
+          context: .
+          file: stacks/nexus.Dockerfile
           push: true
-        env:
-          SHA_SHORT: stable-${{ github.ref_name }}
-          TAG: latest-stable
+          tags: |
+            ghcr.io/peerdb-io/peerdb-server:${{ github.ref_name }}
+
+      - name: Publish Flow API Image
+        uses: depot/build-push-action@v1
+        with:
+          token: ${{ secrets.DEPOT_TOKEN }}
+          context: .
+          file: stacks/flow-api.Dockerfile
+          push: true
+          tags: |
+            ghcr.io/peerdb-io/flow-api:${{ github.ref_name }}
+
+      - name: Publish Flow Worker Stable Image
+        uses: depot/build-push-action@v1
+        with:
+          token: ${{ secrets.DEPOT_TOKEN }}
+          context: .
+          file: stacks/flow-worker.Dockerfile
+          push: true
+          tags: |
+            ghcr.io/peerdb-io/flow-worker:${{ github.ref_name }}

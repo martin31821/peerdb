@@ -8,10 +8,7 @@ on:
 
 jobs:
   flow_test:
-    strategy:
-      matrix:
-        runner: [ubicloud-standard-16-ubuntu-2204-arm]
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-latest-64-core
     timeout-minutes: 30
     services:
       catalog:

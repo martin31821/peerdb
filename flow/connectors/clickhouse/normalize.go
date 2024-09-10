@@ -153,7 +153,9 @@ func generateCreateTableSQLForNormalizedTable(
 	}
 
 	var engine string
-	if tableMapping == nil || tableMapping.Engine == protos.TableEngine_CH_ENGINE_MERGE_TREE {
+	if tableMapping == nil {
+		engine = fmt.Sprintf("ReplacingMergeTree(`%s`)", versionColName)
+	} else if tableMapping.Engine == protos.TableEngine_CH_ENGINE_MERGE_TREE {
 		engine = "MergeTree()"
 	} else {
 		engine = fmt.Sprintf("ReplacingMergeTree(`%s`)", versionColName)

@@ -180,10 +180,13 @@ func generateCreateTableSQLForNormalizedTable(
 		stmtBuilder.WriteString(") ")
 	}
 
-	orderby := make([]*protos.ColumnSetting, 0, len(tableMapping.Columns))
-	for _, col := range tableMapping.Columns {
-		if col.Ordering > 0 && !slices.Contains(pkeys, getColName(colNameMap, col.SourceName)) {
-			orderby = append(orderby, col)
+	orderby := make([]*protos.ColumnSetting, 0)
+	if tableMapping != nil {
+		orderby = slices.Clone(tableMapping.Columns)
+		for _, col := range tableMapping.Columns {
+			if col.Ordering > 0 && !slices.Contains(pkeys, getColName(colNameMap, col.SourceName)) {
+				orderby = append(orderby, col)
+			}
 		}
 	}
 	slices.SortStableFunc(orderby, func(a *protos.ColumnSetting, b *protos.ColumnSetting) int {

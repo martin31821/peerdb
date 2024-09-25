@@ -285,7 +285,7 @@ func UpdateStartTimeForPartition(
 	_, err := pool.Exec(ctx, `UPDATE peerdb_stats.qrep_partitions SET start_time=$1
 	 WHERE run_uuid=$2 AND partition_uuid=$3`, startTime, runUUID, partition.PartitionId)
 	if err != nil {
-		return fmt.Errorf("error while updating qrep partition in qrep_partitions: %w", err)
+		return nil
 	}
 	return nil
 }
@@ -296,7 +296,7 @@ func UpdatePullEndTimeAndRowsForPartition(ctx context.Context, pool *pgxpool.Poo
 	_, err := pool.Exec(ctx, `UPDATE peerdb_stats.qrep_partitions SET pull_end_time=$1,rows_in_partition=$2
 	 WHERE run_uuid=$3 AND partition_uuid=$4`, time.Now(), rowsInPartition, runUUID, partition.PartitionId)
 	if err != nil {
-		return fmt.Errorf("error while updating qrep partition in qrep_partitions: %w", err)
+		return nil
 	}
 	return nil
 }
@@ -307,7 +307,7 @@ func UpdateEndTimeForPartition(ctx context.Context, pool *pgxpool.Pool, runUUID 
 	_, err := pool.Exec(ctx, `UPDATE peerdb_stats.qrep_partitions SET end_time=$1
 	 WHERE run_uuid=$2 AND partition_uuid=$3`, time.Now(), runUUID, partition.PartitionId)
 	if err != nil {
-		return fmt.Errorf("error while updating qrep partition in qrep_partitions: %w", err)
+		return nil
 	}
 	return nil
 }

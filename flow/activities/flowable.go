@@ -551,6 +551,10 @@ func (a *FlowableActivity) replicateQRepPartition(ctx context.Context,
 	partition *protos.QRepPartition,
 	runUUID string,
 ) error {
+	shutdown := utils.HeartbeatRoutine(ctx, 1*time.Minute, func() string {
+		return fmt.Sprintf("syncing partition - %s: %d of %d total.", partition.PartitionId, idx, total)
+	})
+	defer shutdown()
 	ctx = context.WithValue(ctx, shared.FlowNameKey, config.FlowJobName)
 	err := monitoring.UpdateStartTimeForPartition(ctx, a.CatalogPool, runUUID, partition, time.Now())
 	if err != nil {
@@ -623,11 +627,6 @@ func (a *FlowableActivity) replicateQRepPartition(ctx context.Context,
 			return fmt.Errorf("failed to convert to qrecord stream: %w", err)
 		}
 	}
-
-	shutdown := utils.HeartbeatRoutine(ctx, 5*time.Minute, func() string {
-		return fmt.Sprintf("syncing partition - %s: %d of %d total.", partition.PartitionId, idx, total)
-	})
-	defer shutdown()
 
 	rowsSynced, err := dstConn.SyncQRepRecords(config, partition, stream)
 	if err != nil {

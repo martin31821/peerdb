@@ -400,7 +400,7 @@ func (c *ClickHouseConnector) CheckDestinationTables(ctx context.Context, req *p
 
 	// In the case of resync, we don't need to check the content or structure of the original tables;
 	// they'll anyways get swapped out with the _resync tables which we CREATE OR REPLACE
-	if !req.Resync {
+	if !req.Resync && req.DoInitialSnapshot {
 		err := c.checkTablesEmptyAndEngine(ctx, dstTableNames)
 		if err != nil {
 			return err

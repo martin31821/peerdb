@@ -412,6 +412,19 @@ func (c *ClickHouseConnector) NormalizeRecords(
 
 		q := insertIntoSelectQuery.String()
 
+		numParts := 17
+		hashColName := "_peerdb_uid"
+		for i := 0; i < numParts; i++ {
+			whereClause := fmt.Sprintf("cityHash64(%s) %% %d = %d", hashColName, numParts, i)
+			partitionedQuery := q + " AND " + whereClause
+			fmtStr := "executing query for destination table %s (part %d/%d): %s"
+			c.logger.Info(fmt.Sprintf(fmtStr, tbl, i+1, numParts, partitionedQuery))
+
+			if err := c.execWithLogging(ctx, partitionedQuery); err != nil {
+				return nil, fmt.Errorf("error while inserting into normalized table: %w", err)
+			}
+		}
+
 		if err := c.execWithLogging(ctx, q); err != nil {
 			return nil, fmt.Errorf("error while inserting into normalized table: %w", err)
 		}

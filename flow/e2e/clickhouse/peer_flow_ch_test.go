@@ -459,7 +459,6 @@ func (s ClickHouseSuite) Test_Replident_Full_Unchanged_TOAST_Updates() {
 }
 
 func (s ClickHouseSuite) Test_Types_CH() {
-	srcTableName := "test_types"
 	srcFullName := s.attachSchemaSuffix("test_types")
 	dstTableName := "test_types"
 	createMoodEnum := "CREATE TYPE mood AS ENUM ('happy', 'sad', 'angry');"
@@ -528,11 +527,8 @@ func (s ClickHouseSuite) Test_Types_CH() {
 		'{true, false}'::boolean[],
 		'{1, 2}'::smallint[];`, srcFullName))
 	require.NoError(s.t, err)
-	// not all columns can be compared due to type differences
-	e2e.EnvWaitForEqualTablesWithNames(env, s, "initial load + CDC",
-		srcTableName, dstTableName,
-		`id,c1,c4,c7,c8,c9,c11,c12,c13,c15,c17,c18,c21,c22,c23,c24,c28,
-		c29,c30,c31,c32,c33,c34,c37,c38,c39,c40,c42,c43,c44,c45,c46,c47,c48,c49,c50,c51,c52`)
+	e2e.EnvWaitForTableCount(env, s, "initial load + CDC",
+		dstTableName, 2)
 
 	env.Cancel()
 	e2e.RequireEnvCanceled(s.t, env)

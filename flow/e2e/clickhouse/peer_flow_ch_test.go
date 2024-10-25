@@ -527,8 +527,12 @@ func (s ClickHouseSuite) Test_Types_CH() {
 		'{true, false}'::boolean[],
 		'{1, 2}'::smallint[];`, srcFullName))
 	require.NoError(s.t, err)
-	e2e.EnvWaitForTableCount(env, s, "initial load + CDC",
-		dstTableName, 2)
+
+	e2e.EnvWaitFor(s.t, env, 2*time.Minute, "waiting on cdc", func() bool {
+		rows, err := s.GetRows(dstTableName, "id")
+		require.NoError(s.t, err)
+		return len(rows.Records) == 2
+	})
 
 	env.Cancel()
 	e2e.RequireEnvCanceled(s.t, env)

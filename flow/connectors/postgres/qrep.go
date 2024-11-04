@@ -331,15 +331,14 @@ func corePullQRepRecords(
 	partition *protos.QRepPartition,
 	sink QRepPullSink,
 ) (int, error) {
-	err := c.lazyInitCustomTypesMapping(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("failed to initialize custom types mapping: %w", err)
-	}
 	partitionIdLog := slog.String(string(shared.PartitionIDKey), partition.PartitionId)
 	if partition.FullTablePartition {
 		c.logger.Info("pulling full table partition", partitionIdLog)
-		executor := c.NewQRepQueryExecutorSnapshot(config.SnapshotName, config.FlowJobName, partition.PartitionId)
-		_, err := executor.ExecuteQueryIntoSink(ctx, sink, config.Query)
+		executor, err := c.NewQRepQueryExecutorSnapshot(ctx, config.SnapshotName, config.FlowJobName, partition.PartitionId)
+		if err != nil {
+			return 0, fmt.Errorf("failed to create query executor: %w", err)
+		}
+		_, err = executor.ExecuteQueryIntoSink(ctx, sink, config.Query)
 		return 0, err
 	}
 	c.logger.Info("Obtained ranges for partition for PullQRepStream", partitionIdLog)
@@ -377,7 +376,10 @@ func corePullQRepRecords(
 		return 0, err
 	}
 
-	executor := c.NewQRepQueryExecutorSnapshot(config.SnapshotName, config.FlowJobName, partition.PartitionId)
+	executor, err := c.NewQRepQueryExecutorSnapshot(ctx, config.SnapshotName, config.FlowJobName, partition.PartitionId)
+	if err != nil {
+		return 0, fmt.Errorf("failed to create query executor: %w", err)
+	}
 
 	numRecords, err := executor.ExecuteQueryIntoSink(ctx, sink, query, rangeStart, rangeEnd)
 	if err != nil {
@@ -677,7 +679,10 @@ func pullXminRecordStream(
 		queryArgs = []interface{}{strconv.FormatInt(partition.Range.Range.(*protos.PartitionRange_IntRange).IntRange.Start&0xffffffff, 10)}
 	}
 
-	executor := c.NewQRepQueryExecutorSnapshot(config.SnapshotName, config.FlowJobName, partition.PartitionId)
+	executor, err := c.NewQRepQueryExecutorSnapshot(ctx, config.SnapshotName, config.FlowJobName, partition.PartitionId)
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to create query executor: %w", err)
+	}
 
 	numRecords, currentSnapshotXmin, err := executor.ExecuteQueryIntoSinkGettingCurrentSnapshotXmin(
 		ctx,

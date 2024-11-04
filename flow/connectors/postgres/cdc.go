@@ -415,9 +415,11 @@ func PullCdcRecords[Items model.Items](
 					waitingForCommit = true
 				}
 			} else {
-				logger.Info(fmt.Sprintf("[%s] standby deadline reached, no records accumulated, continuing to wait",
-					p.flowJobName),
-				)
+				logger.Info(fmt.Sprintf("[%s] standby deadline reached, no records accumulated, continuing to wait", p.flowJobName),
+					slog.Int64("clientXLogPos", int64(clientXLogPos)), slog.Int64("consumed", req.ConsumedOffset.Load()))
+				if err := p.ReplPing(ctx); err != nil {
+					logger.Error("cdc failed to ReplPing", slog.Any("error", err))
+				}
 			}
 			nextStandbyMessageDeadline = time.Now().Add(standbyMessageTimeout)
 		}
@@ -595,6 +597,8 @@ func PullCdcRecords[Items model.Items](
 					// otherwise push to records so destination can ack once all previous messages processed
 					if cdcRecordsStorage.IsEmpty() {
 						if int64(clientXLogPos) > req.ConsumedOffset.Load() {
+							logger.Info("pg_logical_emit_message",
+								slog.Int64("after", int64(clientXLogPos)), slog.Int64("before", req.ConsumedOffset.Load()))
 							metadata := connmetadata.NewPostgresMetadataFromCatalog(logger, p.catalogPool)
 							if err := metadata.SetLastOffset(ctx, req.FlowJobName, int64(clientXLogPos)); err != nil {
 								return err

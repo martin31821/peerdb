@@ -513,6 +513,8 @@ func (a *FlowableActivity) GetQRepPartitions(ctx context.Context,
 		}
 	}
 
+	a.Alerter.LogFlowInfo(ctx, config.FlowJobName, fmt.Sprintf("obtained partitions for table %s", config.WatermarkTable))
+
 	return &protos.QRepParitionResult{
 		Partitions: partitions,
 	}, nil
@@ -642,6 +644,8 @@ func (a *FlowableActivity) DropFlowSource(ctx context.Context, req *protos.DropF
 		return pullCleanupErr
 	}
 
+	a.Alerter.LogFlowInfo(ctx, req.FlowJobName, "Cleaned up source peer replication objects. Any replication slot or publication created by PeerDB has been removed.")
+
 	return nil
 }
 
@@ -660,6 +664,8 @@ func (a *FlowableActivity) DropFlowDestination(ctx context.Context, req *protos.
 		a.Alerter.LogFlowError(ctx, req.FlowJobName, syncFlowCleanupErr)
 		return syncFlowCleanupErr
 	}
+
+	a.Alerter.LogFlowInfo(ctx, req.FlowJobName, "Cleaned up destination peer replication objects. Any PeerDB metadata storage has been dropped.")
 
 	return nil
 }
@@ -905,6 +911,8 @@ func (a *FlowableActivity) RenameTables(ctx context.Context, config *protos.Rena
 		}
 	}
 
+	a.Alerter.LogFlowInfo(ctx, config.FlowJobName, "Resync completed for all tables")
+
 	return renameOutput, tx.Commit(ctx)
 }
 
@@ -978,6 +986,9 @@ func (a *FlowableActivity) AddTablesToPublication(ctx context.Context, cfg *prot
 	if err != nil {
 		a.Alerter.LogFlowError(ctx, cfg.FlowJobName, err)
 	}
+
+	a.Alerter.LogFlowInfo(ctx, cfg.FlowJobName, fmt.Sprintf("ensured %d tables exist in publication %s",
+		len(additionalTableMappings), cfg.PublicationName))
 	return err
 }
 
@@ -1001,6 +1012,9 @@ func (a *FlowableActivity) RemoveTablesFromPublication(
 	if err != nil {
 		a.Alerter.LogFlowError(ctx, cfg.FlowJobName, err)
 	}
+
+	a.Alerter.LogFlowInfo(ctx, cfg.FlowJobName, fmt.Sprintf("removed %d tables from publication %s",
+		len(removedTablesMapping), cfg.PublicationName))
 	return err
 }
 

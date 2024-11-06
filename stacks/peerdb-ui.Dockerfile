@@ -1,7 +1,7 @@
-# syntax=docker/dockerfile:1.2
+# syntax=docker/dockerfile:1.11@sha256:1f2be5a2aa052cbd9aedf893d17c63277c3d1c51b3fb0f3b029c6b34f658d057
 
 # Base stage
-FROM node:22-alpine AS base
+FROM node:22-alpine@sha256:f265794478aa0b1a23d85a492c8311ed795bc527c3fe7e43453b3c872dcd71a3 AS base
 ENV NPM_CONFIG_UPDATE_NOTIFIER=false
 RUN apk add --no-cache openssl && \
   mkdir /app && \

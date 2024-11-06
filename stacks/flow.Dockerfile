@@ -1,6 +1,6 @@
-# syntax=docker/dockerfile:1.2
+# syntax=docker/dockerfile:1.11@sha256:1f2be5a2aa052cbd9aedf893d17c63277c3d1c51b3fb0f3b029c6b34f658d057
 
-FROM golang:1.23-alpine AS builder
+FROM golang:1.23-alpine@sha256:9dd2625a1ff2859b8d8b01d8f7822c0f528942fe56cfe7a1e7c38d3b8d72d679 AS builder
 RUN apk add --no-cache gcc geos-dev musl-dev
 WORKDIR /root/flow
 
@@ -18,7 +18,7 @@ WORKDIR /root/flow
 ENV CGO_ENABLED=1
 RUN go build -ldflags="-s -w" -o /root/peer-flow
 
-FROM alpine:3.20 AS flow-base
+FROM alpine:3.20@sha256:beefdbd8a1da6d2915566fde36db9db0b524eb737fc57cd1367effd16dc0d06d AS flow-base
 RUN apk add --no-cache ca-certificates geos && \
   adduser -s /bin/sh -D peerdb
 USER peerdb
